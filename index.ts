@@ -64,6 +64,10 @@ class BraveCache<Client = any> {
     static registerProvider(provider: BraveCacheProvider) {
         // Add to the list of registered providers
         RegisteredProviders[provider.name] = provider;
+
+        // Set default provider if not set
+        if (!DefaultProvider) DefaultProvider = provider;
+
         return this;
     }
 

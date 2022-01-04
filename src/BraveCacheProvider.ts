@@ -12,7 +12,7 @@ export type BraveCacheProviderFunctions = {
 
 class BraveCacheProvider<Client = any> {
     name: string;
-    client: Client;
+    client?: Client;
     functions: BraveCacheProviderFunctions;
     config: BraveCacheProviderConfig = {
         expires: true
@@ -20,25 +20,22 @@ class BraveCacheProvider<Client = any> {
 
     /**
      * Initialize the cache provider
-     * @param name - The name of the cache provider
-     * @param client - The client to use for the cache provider
-     * @param functions - The functions to use for the cache provider
-     * @param config - The config to use for the cache provider
+     * @param options
      */
-    constructor(
-        name: string,
-        client: Client,
-        functions: BraveCacheProviderFunctions,
-        config: BraveCacheProviderConfig = {}
-    ) {
-        this.name = name;
-        this.client = client;
-        this.functions = functions;
+    constructor(options: {
+        name: string;
+        functions: BraveCacheProviderFunctions;
+        client?: Client;
+        config?: BraveCacheProviderConfig;
+    }) {
+        this.name = options.name;
+        this.client = options.client;
+        this.functions = options.functions;
 
         // Merge config
         this.config = {
             ...this.config,
-            ...config
+            ...(options.config || {})
         };
     }
 

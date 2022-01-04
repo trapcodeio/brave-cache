@@ -8,25 +8,29 @@ export default (options: LRUCache.Options<string, any> = {}, name?: string) => {
         ...options
     });
 
-    return new BraveCacheProvider(name || "lru-cache", cache, {
-        get(key: string) {
-            return cache.get(key);
-        },
+    return new BraveCacheProvider({
+        name: name || "lru-cache",
+        client: cache,
+        functions: {
+            get(key) {
+                return cache.get(key);
+            },
 
-        set(key: string, value: any) {
-            return cache.set(key, value);
-        },
+            set(key, value) {
+                return cache.set(key, value);
+            },
 
-        remove(key: string) {
-            return cache.del(key);
-        },
+            remove(key) {
+                return cache.del(key);
+            },
 
-        has(key: string) {
-            return cache.has(key);
-        },
+            has(key) {
+                return cache.has(key);
+            },
 
-        flush() {
-            return cache.reset();
+            flush() {
+                return cache.reset();
+            }
         }
     });
 };
