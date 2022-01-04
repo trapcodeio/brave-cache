@@ -7,8 +7,8 @@ class BraveCache<Client = any> {
     // Instance provider holder
     provider: BraveCacheProvider<Client>;
 
-    constructor(defaultProvider?: string) {
-        this.provider = BraveCache.getProvider(defaultProvider);
+    constructor(provider?: string) {
+        this.provider = BraveCache.getProvider(provider);
     }
 
     /**
@@ -60,8 +60,11 @@ class BraveCache<Client = any> {
     /**
      * Register provider
      * @param provider Provider to register
+     * @param as
      */
-    static registerProvider(provider: BraveCacheProvider) {
+    static registerProvider<T extends BraveCacheProvider>(provider: T, as?: string) {
+        if (as) provider.name = as;
+
         // Add to the list of registered providers
         RegisteredProviders[provider.name] = provider;
 

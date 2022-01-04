@@ -1,7 +1,7 @@
 import BraveCacheProvider from "../src/BraveCacheProvider";
 import LRUCache = require("lru-cache");
 
-export default (options: LRUCache.Options<string, any> = {}, name?: string) => {
+export default (options: LRUCache.Options<string, any> = {}) => {
     const cache = new LRUCache<string, any>({
         max: 0,
         maxAge: 1000 * 60 * 60 * 24 * 7,
@@ -9,7 +9,7 @@ export default (options: LRUCache.Options<string, any> = {}, name?: string) => {
     });
 
     return new BraveCacheProvider({
-        name: name || "lru-cache",
+        name: "lru-cache",
         client: cache,
         functions: {
             get(key) {

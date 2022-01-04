@@ -39,6 +39,17 @@ class BraveCacheProvider<Client = any> {
         };
     }
 
+    /**
+     * Check if the cache provider has a client
+     */
+    hasClient() {
+        return !!this.client;
+    }
+
+    /**
+     * Check if the cache provider has a function
+     * @param name
+     */
     hasFunctionOrThrowError(name: string) {
         // Throw error when get function is not defined
         if (!this.functions.hasOwnProperty(name))

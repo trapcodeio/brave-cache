@@ -39,15 +39,60 @@ Basically all nodejs `cache` modules have similar api, so creating a custom prov
 
 A custom provider is a function that takes any necessary configuration and returns a `BraveCacheProvider` class instance.
 
-```typescript
+```js
 import BraveCacheProvider from "brave-cache/src/BraveCacheProvider"; 
 
-// config - any configuration required by the provider
-// name - name of the provider
-function SimpleCache(config?: any, name?: string) {
+function SimpleCache() {
     // Holds cache values
-    const SimpleCacheStore = {};
-    
-    return new BraveCacheProvider(name || 'simple-cache')
+    let SimpleCacheStore = {};
+
+    // Return provider instance
+    return new BraveCacheProvider({
+        name,
+
+        functions: {
+            get(key) {
+                return SimpleCacheStore[key];
+            },
+
+            set(key, value) {
+                SimpleCacheStore[key] = value;
+            },
+
+            has(key) {
+                return SimpleCacheStore.hasOwnProperty(key);
+            },
+
+            remove(key) {
+                delete SimpleCacheStore[key];
+            },
+
+            flush() {
+                SimpleCacheStore = {};
+            }
+        }
+    });
 }
 ```
+
+From the example above, the `SimpleCache` provider is a simple implementation of how to create a cache Provider.
+
+Notice that you have to implement all the functions that are required by the `BraveCacheProvider` class.
+These functions will be used when accessing the cache.
+
+### Using A Custom Provider
+
+```js
+const {BraveCache} = require('brave-cache');
+
+// Register Simple Cache Above
+BraveCache.registerProvider(SimpleCache());
+
+const cache = new BraveCache(); // or new BraveCache("simple-cache"); if simple-cache is not set as default provider.
+
+cache.set("test", "test");
+
+console.log(cache.get("test"))
+```
+
+More implementations can be found in test files
