@@ -3,12 +3,16 @@ export type BraveCacheProviderConfig = {
 };
 
 export type BraveCacheProviderFunctions = {
-    get(key: string): any;
-    set(key: string, value: any): any;
-    remove(key: string): void;
-    has(key: string): boolean;
-    flush(): void;
+    get: (key: string) => any | Promise<any>;
+    set: (key: string, value: any) => any | Promise<any>;
+    del: (key: string) => any | Promise<any>;
+    has: (key: string) => boolean | Promise<boolean>;
+    flush: () => any | Promise<any>;
+    keys: () => string[] | Promise<string[]>;
 };
+
+type RequiredFunctions = keyof BraveCacheProviderFunctions;
+const RequiredFunctions: Array<RequiredFunctions> = ["get", "set", "del", "has", "flush", "keys"];
 
 class BraveCacheProvider<Client = any> {
     name: string;
@@ -28,6 +32,12 @@ class BraveCacheProvider<Client = any> {
         client?: Client;
         config?: BraveCacheProviderConfig;
     }) {
+        if (!options.name) {
+            throw new Error("Cache provider name is required!");
+        } else if (!options.functions) {
+            throw new Error("Cache provider functions are required!");
+        }
+
         this.name = options.name;
         this.client = options.client;
         this.functions = options.functions;
@@ -37,6 +47,19 @@ class BraveCacheProvider<Client = any> {
             ...this.config,
             ...(options.config || {})
         };
+
+        // Check if all functions exists
+        const missing: string[] = [];
+
+        for (const key of RequiredFunctions) {
+            if (!this.functions.hasOwnProperty(key)) {
+                missing.push(key);
+            }
+        }
+
+        if (missing.length) {
+            throw new Error(`Cache provider functions are missing: [${missing.join(", ")}]`);
+        }
     }
 
     /**

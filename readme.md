@@ -34,6 +34,10 @@ console.log(cache.get("direct")) // => direct
 console.log(cache.provider.client.get("direct")) // => direct
 ```
 
+## Why Brave Cache
+BraveCache provides extra **rare** functions for managing multiple caches. By **rare** we mean functions not included 
+in the majority of cache packages out there but required in modern day applications.
+
 ## Creating a Custom Provider
 Basically all nodejs `cache` modules have similar api, so creating a custom provider is easy.
 

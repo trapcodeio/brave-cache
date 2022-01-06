@@ -1,20 +1,17 @@
 /**
- * LRUCacheProvider
+ * Memory cache using object collection.
  */
 
 import BraveCacheProvider from "../src/BraveCacheProvider";
-import LRUCache = require("lru-cache");
+import { Obj } from "object-collection/exports";
 
-export default function LRUCacheProvider(options: LRUCache.Options<string, any> = {}) {
-    const cache = new LRUCache<string, any>({
-        max: 0,
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        ...options
-    });
+export default function ObjectCacheProvider(data?: Record<string, any>) {
+    const cache = Obj<Record<string, any>>(data || {});
 
     return new BraveCacheProvider({
-        name: "lru-cache",
+        name: "object-cache",
         client: cache,
+
         functions: {
             get(key) {
                 return cache.get(key);
@@ -25,7 +22,7 @@ export default function LRUCacheProvider(options: LRUCache.Options<string, any> 
             },
 
             del(key) {
-                return cache.del(key);
+                return cache.unset(key);
             },
 
             has(key) {
@@ -33,7 +30,7 @@ export default function LRUCacheProvider(options: LRUCache.Options<string, any> 
             },
 
             flush() {
-                return cache.reset();
+                cache.replaceData({});
             },
 
             keys() {

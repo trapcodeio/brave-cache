@@ -2,16 +2,15 @@ import test from "japa";
 import { BraveCache } from "../index";
 
 import LRUCacheProvider from "../providers/lru-cache";
-import SimpleCache from "./CustomTestProvider";
+import ObjectCacheProvider from "../providers/object-cache";
 
 // Initialize the cache.
 test("Register provider", () => {
     BraveCache.registerProvider(LRUCacheProvider());
+    // register Cache as another name
     BraveCache.registerProvider(LRUCacheProvider(), "lru-cache-2");
-});
 
-// Set Default Provider.
-test("Set Default Provider", () => {
+    // Set Default Provider.
     BraveCache.setDefaultProvider("lru-cache");
 });
 
@@ -35,16 +34,19 @@ test("Initialize new Cache", (assert) => {
     // check if each cache is self-contained.
     assert.isUndefined(cache.get("test2"));
     assert.isUndefined(cache2.get("test"));
+
+    cache.flush();
+    cache2.flush();
 });
 
 /**
  * Test if the cache is self-contained.
  */
 test("Custom Cache Provider", (assert) => {
-    BraveCache.registerProvider(SimpleCache());
+    BraveCache.registerProvider(ObjectCacheProvider());
 
     // Initialize new Cache
-    const cache = new BraveCache("simple-cache");
+    const cache = new BraveCache("object-cache");
 
     cache.set("provider", "Simple Cache Provider");
     assert.equal(cache.get("provider"), "Simple Cache Provider");
@@ -52,4 +54,7 @@ test("Custom Cache Provider", (assert) => {
     // Initialize without specifying a provider.
     const cache2 = new BraveCache();
     assert.equal(cache2.provider.name, "lru-cache");
+
+    cache.flush();
+    cache2.flush();
 });
