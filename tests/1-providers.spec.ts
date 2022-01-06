@@ -1,6 +1,6 @@
 import test from "japa";
-import { BraveCache } from "../index";
-import BraveCacheProvider from "../src/BraveCacheProvider";
+import BraveCache from "../index";
+import BraveCacheProvider from "../src/provider";
 
 test.group("Register Provider Validator", () => {
     test.failing("Provider must have a name.", () => {

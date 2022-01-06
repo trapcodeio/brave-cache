@@ -1,8 +1,7 @@
 /**
  * Memory cache using object collection.
  */
-
-import BraveCacheProvider from "../src/BraveCacheProvider";
+import BraveCacheProvider from "../src/provider";
 import { Obj } from "object-collection/exports";
 
 export default function ObjectCacheProvider(data?: Record<string, any>) {
@@ -10,6 +9,7 @@ export default function ObjectCacheProvider(data?: Record<string, any>) {
 
     return new BraveCacheProvider({
         name: "object-cache",
+        // Grinding
         client: cache,
 
         functions: {

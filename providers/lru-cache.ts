@@ -1,8 +1,7 @@
 /**
  * LRUCacheProvider
  */
-
-import BraveCacheProvider from "../src/BraveCacheProvider";
+import BraveCacheProvider from "../src/provider";
 import LRUCache from "lru-cache";
 
 export default function LRUCacheProvider(options: LRUCache.Options<string, any> = {}) {

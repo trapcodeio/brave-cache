@@ -1,4 +1,4 @@
-/// bc is a shorthand for `BraveCache`
+// bc is a shorthand for `BraveCache`
 
 /**
  * Get value from function or return default value

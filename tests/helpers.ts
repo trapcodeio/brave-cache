@@ -1,6 +1,6 @@
-import { BraveCache } from "../index";
 import test from "japa";
-import BraveCacheProvider from "../src/BraveCacheProvider";
+import BraveCache from "../index";
+import BraveCacheProvider from "../src/provider";
 
 /**
  * Test a basic cache provider

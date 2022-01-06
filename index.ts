@@ -1,5 +1,6 @@
-import BraveCacheProvider from "./src/BraveCacheProvider";
+import BraveCacheProvider from "./src/provider";
 import { bc_getDefaultValue } from "./src/functions";
+import ObjectCacheProvider from "./providers/object-cache";
 
 const RegisteredProviders: Record<string, BraveCacheProvider> = {};
 let DefaultProvider: BraveCacheProvider | undefined = undefined;
@@ -331,4 +332,7 @@ class BraveCache<Client = any> {
     }
 }
 
-export { BraveCache };
+// Set Default Provider to ObjectCacheProvider
+BraveCache.registerProvider(ObjectCacheProvider());
+
+export = BraveCache;

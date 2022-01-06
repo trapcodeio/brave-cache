@@ -1,7 +1,7 @@
 /**
  * Node Cache Provider
  */
-import BraveCacheProvider from "../src/BraveCacheProvider";
+import BraveCacheProvider from "../src/provider";
 import NodeCache from "node-cache";
 
 export default function NodeCacheProvider(options: NodeCache.Options = {}) {

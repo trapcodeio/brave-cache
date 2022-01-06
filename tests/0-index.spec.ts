@@ -1,8 +1,7 @@
 import test from "japa";
-import { BraveCache } from "../index";
-
 import LRUCacheProvider from "../providers/lru-cache";
 import ObjectCacheProvider from "../providers/object-cache";
+import BraveCache from "../index";
 
 // Initialize the cache.
 test("Register provider", () => {
