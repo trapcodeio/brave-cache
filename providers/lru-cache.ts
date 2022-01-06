@@ -20,8 +20,9 @@ export default function LRUCacheProvider(options: LRUCache.Options<string, any> 
                 return cache.get(key);
             },
 
-            set(key, value) {
-                return cache.set(key, value);
+            set(key, value, ttl) {
+                // Since LRUCache supports milliseconds instead of seconds, we need to convert.
+                return cache.set(key, value, ttl ? ttl * 1000 : undefined);
             },
 
             del(key) {

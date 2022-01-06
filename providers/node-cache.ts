@@ -16,8 +16,8 @@ export default function NodeCacheProvider(options: NodeCache.Options = {}) {
                 return cache.get(key);
             },
 
-            set(key, value) {
-                return cache.set(key, value);
+            set(key, value, ttl) {
+                return cache.set(key, value, ttl || 0);
             },
 
             del(key) {

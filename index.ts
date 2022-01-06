@@ -27,8 +27,7 @@ class BraveCache<Client = any> {
     static setDefaultProvider(name: string) {
         DefaultProvider = RegisteredProviders[name];
 
-        if (!DefaultProvider)
-            throw new Error(`Provider ${name} not found. Please register it first.`);
+        if (!DefaultProvider) throw new Error(`Provider ${name} not found. Register it first.`);
 
         return this;
     }
