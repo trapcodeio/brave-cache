@@ -95,13 +95,82 @@ class BraveCache<Client = any> {
     }
 
     /**
+     * Get multiple values from the cache
+     * @param keys
+     */
+    getMany<Values extends Record<string, any>>(keys: string[]) {
+        if (this.provider.functions.getMany) {
+            return this.provider.functions.getMany(keys) as Values;
+        }
+
+        const value = {} as Record<string, any>;
+        for (const key of keys) {
+            value[key] = this.get(key);
+        }
+
+        return value;
+    }
+
+    /**
+     * Async: Get multiple values from the cache
+     * @param keys
+     */
+    async getManyAsync<Values extends Record<string, any>>(keys: string[]) {
+        if (this.provider.functions.getMany) {
+            return this.provider.functions.getMany(keys) as Values;
+        }
+
+        const value = {} as Record<string, any>;
+
+        for (const key of keys) {
+            value[key] = await this.getAsync(key);
+        }
+
+        return value;
+    }
+
+    /**
+     * Find or create a value in the cache
+     * @param key The key to set
+     * @param set The value to set
+     */
+    getOrSet<Value = any>(key: string, set: Value | (() => Value)) {
+        if (this.has(key)) return this.get<Value>(key);
+
+        const value = bc_getDefaultValue(set);
+        this.set(key, value);
+
+        return value;
+    }
+
+    /**
+     * Async: Find or create a value in the cache
+     * @param key The key to set
+     * @param set The value to set
+     * @param ttl Time to live in seconds
+     */
+    async getOrSetAsync<Value = any>(
+        key: string,
+        set: Value | (() => Value),
+        ttl?: number
+    ): Promise<Value> {
+        if (this.has(key)) return this.get<Value>(key);
+
+        const value = await bc_getDefaultValue(set);
+        await this.setAsync(key, value, ttl);
+
+        return value;
+    }
+
+    /**
      * Set a value in the cache
      * @param key The key to set
      * @param value The value to set
+     * @param ttl Time to live in seconds
      */
-    set<Value = any>(key: string, value: Value) {
+    set<Value = any>(key: string, value: Value, ttl?: number) {
         this.provider.hasFunctionOrThrowError("set");
-        this.provider.functions.set(key, value);
+        this.provider.functions.set(key, value, ttl);
 
         return this;
     }
@@ -110,13 +179,51 @@ class BraveCache<Client = any> {
      * Async: Set a value in the cache
      * @param key The key to set
      * @param value The value to set
+     * @param ttl Time to live in seconds
      */
-    async setAsync<Value = any>(key: string, value: Value) {
+    async setAsync<Value = any>(key: string, value: Value, ttl?: number) {
         this.provider.hasFunctionOrThrowError("set");
-
-        await this.provider.functions.set(key, value);
+        await this.provider.functions.set(key, value, ttl);
 
         return this;
+    }
+
+    /**
+     * Set multiple values in the cache
+     * @param values
+     */
+    setMany(
+        values:
+            | Array<[key: string, value: any, ttl?: number]>
+            | Array<{ key: string; value: any; ttl?: number }>
+    ) {
+        for (const value of values) {
+            if (Array.isArray(value)) {
+                this.set(value[0], value[1], value[2]);
+            } else {
+                this.set(value.key, value.value, value.ttl);
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Async: Set multiple values in the cache
+     * @param values
+     */
+    async setManyAsync(
+        values:
+            | Array<[key: string, value: any, ttl?: number]>
+            | Array<{ key: string; value: any; ttl?: number }>
+    ) {
+        for (const value of values) {
+            if (Array.isArray(value)) {
+                await this.setAsync(value[0], value[1], value[2]);
+            } else {
+                await this.setAsync(value.key, value.value, value.ttl);
+            }
+        }
     }
 
     /**

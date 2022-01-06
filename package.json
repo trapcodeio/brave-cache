@@ -19,6 +19,7 @@
     "@types/node": "^17.0.6",
     "japa": "^4.0.0",
     "lru-cache": "^6.0.0",
+    "node-cache": "^5.1.2",
     "nodemon": "^2.0.15",
     "prettier": "^2.5.1",
     "ts-node": "^10.4.0",

@@ -2,19 +2,26 @@ import { BraveCache } from "../index";
 import test from "japa";
 import BraveCacheProvider from "../src/BraveCacheProvider";
 
-export function TestBraveInstanceMethods(groupName: string, provider: BraveCacheProvider) {
+/**
+ * Test a basic cache provider
+ * @param groupName
+ * @param provider
+ * @constructor
+ */
+export function TestCacheProvider(groupName: string, provider: BraveCacheProvider) {
     test.group(groupName, (group) => {
         let cache: BraveCache;
+
+        group.before(() => {
+            BraveCache.registerProvider(provider);
+            cache = new BraveCache(provider.name);
+        });
 
         group.afterEach(async () => {
             await cache.flushAsync();
         });
 
-        test("Can be registered and initialized", (assert) => {
-            BraveCache.registerProvider(provider);
-
-            cache = new BraveCache(provider.name);
-
+        test("Is using provider", (assert) => {
             assert.equal(cache.provider.name, provider.name);
         });
 
@@ -65,6 +72,46 @@ export function TestBraveInstanceMethods(groupName: string, provider: BraveCache
             assert.equal(test, "value");
         });
 
+        // test getMany()
+        test("getMany():", (assert) => {
+            // Test with values
+            cache.set("key1", "value1");
+            cache.set("key2", "value2");
+            cache.set("key3", "value3");
+
+            let test = cache.getMany(["key1", "key2", "key3"]);
+
+            assert.equal(test.key1, "value1");
+            assert.equal(test.key2, "value2");
+            assert.equal(test.key3, "value3");
+
+            // Test without values
+            test = cache.getMany(["key1", "key2", "key3", "key4"]);
+            // key4 should be undefined
+            assert.isUndefined(test.key4);
+        });
+
+        // test getManyAsync()
+        test("getManyAsync():", async (assert) => {
+            // Set Many
+            await cache.setManyAsync([
+                ["key1", "value1"],
+                ["key2", "value2"],
+                ["key3", "value3"]
+            ]);
+
+            let test = await cache.getManyAsync(["key1", "key2", "key3"]);
+
+            assert.equal(test.key1, "value1");
+            assert.equal(test.key2, "value2");
+            assert.equal(test.key3, "value3");
+
+            // Test without values
+            test = await cache.getManyAsync(["key1", "key2", "key3", "key4"]);
+            // key4 should be undefined
+            assert.isUndefined(test.key4);
+        });
+
         // test set()
         test("set():", (assert) => {
             cache.set("key", "value");
@@ -76,6 +123,80 @@ export function TestBraveInstanceMethods(groupName: string, provider: BraveCache
             await cache.setAsync("key", "value");
             // Using await
             assert.equal(await cache.getAsync("key"), "value");
+        });
+
+        // test setMany()
+        test("setMany():", (assert) => {
+            // Using array syntax
+            cache.setMany([
+                ["key", "value"],
+                ["key2", "value2", 500] // or with TTL in seconds
+            ]);
+
+            assert.equal(cache.get("key"), "value");
+            assert.equal(cache.get("key2"), "value2");
+
+            // Using object syntax
+            cache.setMany([
+                { key: "key3", value: "value3" },
+                { key: "key4", value: "value4", ttl: 500 } // or with TTL in seconds
+            ]);
+
+            assert.equal(cache.get("key3"), "value3");
+            assert.equal(cache.get("key4"), "value4");
+        });
+
+        // test setManyAsync()
+        test("setManyAsync():", async (assert) => {
+            // Using array syntax
+            await cache.setManyAsync([
+                ["key", "value"],
+                ["key2", "value2", 500] // or with TTL in seconds
+            ]);
+
+            assert.equal(await cache.getAsync("key"), "value");
+            assert.equal(await cache.getAsync("key2"), "value2");
+
+            // Using object syntax
+            await cache.setManyAsync([
+                { key: "key3", value: "value3" },
+                { key: "key4", value: "value4", ttl: 500 } // or with TTL in seconds
+            ]);
+
+            assert.equal(await cache.getAsync("key3"), "value3");
+            assert.equal(await cache.getAsync("key4"), "value4");
+        });
+
+        // test getOrSet()
+        test("getOrSet():", (assert) => {
+            // test with default value
+            let test = cache.getOrSet("key", "value");
+            assert.equal(test, "value");
+            assert.equal(cache.get("key"), "value");
+
+            // test with default value as function that returns value.
+            let test2 = cache.getOrSet("key2", () => "value2");
+            assert.equal(test2, "value2");
+            assert.equal(cache.get("key2"), "value2");
+        });
+
+        // test getOrSetAsync()
+        test("getOrSetAsync():", async (assert) => {
+            // test with default value
+            let test = await cache.getOrSetAsync("key", "value");
+            assert.equal(test, "value");
+            assert.equal(await cache.getAsync("key"), "value");
+
+            // test with default value as function that returns value.
+            let test2 = await cache.getOrSetAsync("key2", () => "value2");
+            assert.equal(test2, "value2");
+            assert.equal(await cache.getAsync("key2"), "value2");
+
+            // test with default value as a function that returns promise.
+            let test3 = await cache.getOrSetAsync("key3", () => Promise.resolve("value3"));
+
+            assert.equal(test3, "value3");
+            assert.equal(await cache.getAsync("key3"), "value3");
         });
 
         // test has():

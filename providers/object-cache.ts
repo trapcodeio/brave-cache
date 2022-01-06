@@ -35,6 +35,11 @@ export default function ObjectCacheProvider(data?: Record<string, any>) {
 
             keys() {
                 return cache.keys();
+            },
+
+            // Optional functions
+            getMany(keys) {
+                return cache.pick(keys);
             }
         }
     });

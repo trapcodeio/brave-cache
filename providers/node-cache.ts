@@ -1,19 +1,15 @@
 /**
- * LRUCacheProvider
+ * Node Cache Provider
  */
-
 import BraveCacheProvider from "../src/BraveCacheProvider";
-import LRUCache from "lru-cache";
+import NodeCache from "node-cache";
 
-export default function LRUCacheProvider(options: LRUCache.Options<string, any> = {}) {
-    const cache = new LRUCache<string, any>({
-        max: 0,
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        ...options
-    });
+export default function NodeCacheProvider(options: NodeCache.Options = {}) {
+    // Create a new instance of the Node Cache
+    const cache = new NodeCache(options);
 
     return new BraveCacheProvider({
-        name: "lru-cache",
+        name: "node-cache",
         client: cache,
         functions: {
             get(key) {
@@ -33,11 +29,16 @@ export default function LRUCacheProvider(options: LRUCache.Options<string, any> 
             },
 
             flush() {
-                return cache.reset();
+                return cache.flushAll();
             },
 
             keys() {
                 return cache.keys();
+            },
+
+            // Optional functions
+            getMany(keys) {
+                return cache.mget(keys);
             }
         }
     });
