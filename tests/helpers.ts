@@ -59,25 +59,30 @@ export function TestCacheProvider(groupName: string, provider: BraveCacheProvide
 
         // test getAsync() with default value
         test("getAsync(): with default value", async (assert) => {
-            let test = await cache.getAsync("fail", "default");
+            let test: string = await cache.getAsync("fail", "default");
             assert.equal(test, "default");
+
+            // test with default value as promise
+            test = await cache.getAsync("key", Promise.resolve("promise"));
+            assert.equal(test, "promise");
 
             // test with default value as function
             test = cache.get("key", () => "value");
             assert.equal(test, "value");
 
             // test with default value as async function
-            test = await cache.getAsync("key", () => Promise.resolve("value"));
-
-            assert.equal(test, "value");
+            test = await cache.getAsync("key", () => Promise.resolve("function"));
+            assert.equal(test, "function");
         });
 
         // test getMany()
         test("getMany():", (assert) => {
-            // Test with values
-            cache.set("key1", "value1");
-            cache.set("key2", "value2");
-            cache.set("key3", "value3");
+            // Set Many
+            cache.setMany([
+                ["key1", "value1"],
+                ["key2", "value2"],
+                ["key3", "value3"]
+            ]);
 
             let test = cache.getMany(["key1", "key2", "key3"]);
 
