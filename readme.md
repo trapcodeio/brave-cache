@@ -82,7 +82,7 @@ BraveCache.registerProvider(
 BraveCache.setDefaultProvider("lru-cache");
 
 // Create Cache, it will use LRUCache
-const cache = new BraveCache("lru-cache");
+const cache = new BraveCache();
 cache.set("test", "test");
 
 console.log(cache.get("test"));

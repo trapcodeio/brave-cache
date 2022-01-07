@@ -6,15 +6,22 @@ import BraveCacheProvider from "../src/provider";
  * Test a basic cache provider
  * @param groupName
  * @param provider
+ * @param prefix
  * @constructor
  */
-export function TestCacheProvider(groupName: string, provider: BraveCacheProvider) {
+export function TestCacheProvider(
+    groupName: string,
+    provider: BraveCacheProvider,
+    prefix: string | false = false
+) {
     test.group(groupName, (group) => {
         let cache: BraveCache;
 
         group.before(() => {
             BraveCache.registerProvider(provider);
-            cache = new BraveCache(provider.name);
+            cache = new BraveCache(provider.name, {
+                prefix
+            });
         });
 
         group.afterEach(async () => {
@@ -85,6 +92,8 @@ export function TestCacheProvider(groupName: string, provider: BraveCacheProvide
             ]);
 
             let test = cache.getMany(["key1", "key2", "key3"]);
+
+            // cache.set("hey", "hey");
 
             assert.equal(test.key1, "value1");
             assert.equal(test.key2, "value2");
@@ -235,23 +244,6 @@ export function TestCacheProvider(groupName: string, provider: BraveCacheProvide
             assert.isFalse(await cache.hasAsync("key"));
         });
 
-        // test flush():
-        test("flush():", (assert) => {
-            cache.set("key", "value");
-            assert.isTrue(cache.has("key"));
-            cache.flush();
-            assert.isFalse(cache.has("key"));
-        });
-
-        // test flushAsync():
-        test("flushAsync():", async (assert) => {
-            await cache.setAsync("key", "value");
-            assert.isTrue(await cache.hasAsync("key"));
-
-            await cache.flushAsync();
-            assert.isFalse(await cache.hasAsync("key"));
-        });
-
         // test keys():
         test("keys():", (assert) => {
             cache.set("key", "value");
@@ -276,20 +268,94 @@ export function TestCacheProvider(groupName: string, provider: BraveCacheProvide
             assert.include(keys, "key2");
         });
 
-        // test size():
-        test("size():", (assert) => {
-            cache.set("key", "value");
-            cache.set("key2", "value2");
+        if (prefix) {
+            // test keys() with prefix
+            test("keys(): has prefix", (assert) => {
+                cache.set("key", "value");
+                cache.set("key2", "value2");
 
-            assert.equal(cache.size(), 2);
-        });
+                const keys = cache.keys(true);
 
-        // test sizeAsync():
-        test("sizeAsync():", async (assert) => {
-            await cache.setAsync("key", "value");
-            await cache.setAsync("key2", "value2");
+                assert.equal(keys.length, 2);
+                assert.include(keys, `${prefix}:key`);
+                assert.include(keys, `${prefix}:key2`);
+            });
 
-            assert.equal(await cache.sizeAsync(), 2);
-        });
+            // test keysAsync with prefix
+            test("keysAsync(): has prefix", async (assert) => {
+                cache.set("key", "value");
+                cache.set("key2", "value2");
+
+                const keys = await cache.keysAsync(true);
+
+                assert.equal(keys.length, 2);
+                assert.include(keys, `${prefix}:key`);
+                assert.include(keys, `${prefix}:key2`);
+            });
+
+            test("Same [key & provider] with different prefix should give different result", (assert) => {
+                const cache = new BraveCache(provider.name, { prefix: "1" });
+                const cache2 = new BraveCache(provider.name, { prefix: "2" });
+
+                assert.equal(cache.options.prefix, "1");
+                assert.equal(cache2.options.prefix, "2");
+
+                cache.set("key", "value");
+                cache2.set("key", "value2");
+
+                assert.equal(cache.get("key"), "value");
+                assert.equal(cache2.get("key"), "value2");
+            });
+        } else {
+            // test flush():
+            test("flush():", (assert) => {
+                cache.set("key", "value");
+                assert.isTrue(cache.has("key"));
+                cache.flush();
+                assert.isFalse(cache.has("key"));
+            });
+
+            // test flushAsync():
+            test("flushAsync():", async (assert) => {
+                await cache.setAsync("key", "value");
+                assert.isTrue(await cache.hasAsync("key"));
+
+                await cache.flushAsync();
+                assert.isFalse(await cache.hasAsync("key"));
+            });
+
+            // test size():
+            test("size():", (assert) => {
+                cache.set("key", "value");
+                cache.set("key2", "value2");
+
+                assert.equal(cache.size(), 2);
+            });
+
+            // test sizeAsync():
+            test("sizeAsync():", async (assert) => {
+                await cache.setAsync("key", "value");
+                await cache.setAsync("key2", "value2");
+
+                assert.equal(await cache.sizeAsync(), 2);
+            });
+
+            test("Same [key & provider] without prefix should give same result", (assert) => {
+                const cache1 = new BraveCache(provider.name);
+                const cache2 = new BraveCache(provider.name);
+
+                assert.equal(cache1.options.prefix, false);
+                assert.equal(cache2.options.prefix, false);
+
+                cache1.set("key", "value");
+
+                // This will overwrite cache1
+                cache2.set("key", "value2");
+
+                // both cache1 and cache2 should have same value
+                assert.equal(cache1.get("key"), "value2");
+                assert.equal(cache2.get("key"), "value2");
+            });
+        }
     });
 }

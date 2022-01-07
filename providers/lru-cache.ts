@@ -4,6 +4,13 @@
 import BraveCacheProvider from "../src/provider";
 import LRUCache from "lru-cache";
 
+/**
+ * LRUCacheProvider
+ * @example
+ * const cache = new BraveCache("lru-cache");
+ * @param options
+ * @constructor
+ */
 export default function LRUCacheProvider(options: LRUCache.Options<string, any> = {}) {
     const cache = new LRUCache<string, any>({
         max: 0,

@@ -2,10 +2,17 @@
  * Memory cache using object collection.
  */
 import BraveCacheProvider from "../src/provider";
-import { Obj } from "object-collection/exports";
+import ObjectCollection from "object-collection";
 
+/**
+ * Memory cache using object collection.
+ * @example
+ * const cache = new BraveCache("object-cache");
+ * @param data
+ * @constructor
+ */
 export default function ObjectCacheProvider(data?: Record<string, any>) {
-    const cache = Obj<Record<string, any>>(data || {});
+    const cache = new ObjectCollection<Record<string, any>>(data || {});
 
     return new BraveCacheProvider({
         name: "object-cache",

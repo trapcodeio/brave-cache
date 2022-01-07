@@ -1,24 +1,35 @@
 import BraveCacheProvider from "./src/provider";
-import { bc_getDefaultValue } from "./src/functions";
+import { bc_getDefaultValue, bc_removePrefixFromObjectKeys } from "./src/functions";
 import ObjectCacheProvider from "./providers/object-cache";
 
 const RegisteredProviders: Record<string, BraveCacheProvider> = {};
 let DefaultProvider: BraveCacheProvider | undefined = undefined;
 
+type BraveCacheOptions = { prefix?: string | boolean; prefixSeparator?: string };
+
 class BraveCache<Client = any> {
     // Instance provider holder
     provider: BraveCacheProvider<Client>;
+    options: BraveCacheOptions;
 
-    constructor(provider?: string) {
+    constructor(provider?: string, options?: BraveCacheOptions) {
         this.provider = BraveCache.getProvider(provider);
+
+        // Merge options
+        this.options = {
+            prefix: false,
+            prefixSeparator: ":",
+            ...(options ? options : {})
+        };
     }
 
     /**
      * Shorthand to initialize new cache instance
      * @param provider
+     * @param options
      */
-    static useProvider<Client>(provider: string): BraveCache<Client> {
-        return new this(provider);
+    static useProvider<Client>(provider: string, options?: BraveCacheOptions): BraveCache<Client> {
+        return new this(provider, options);
     }
 
     /**
@@ -72,6 +83,19 @@ class BraveCache<Client = any> {
     }
 
     /**
+     * Get key prefix if prefix is enabled
+     * @param key
+     * @private
+     */
+    private prefix(key: string) {
+        return this.hasPrefix ? this.options.prefix! + this.options.prefixSeparator! + key : key;
+    }
+
+    private get hasPrefix() {
+        return typeof this.options.prefix === "string" && this.options.prefix.trim().length > 0;
+    }
+
+    /**
      * Get a value from the cache
      * @param key The key to get
      * @param def
@@ -79,7 +103,7 @@ class BraveCache<Client = any> {
     get<Value = any>(key: string, def?: Value | (() => Value)) {
         this.provider.hasFunctionOrThrowError("get");
 
-        let value: Value = this.provider.functions.get(key);
+        let value: Value = this.provider.functions.get(this.prefix(key));
 
         if (value === undefined && def) return bc_getDefaultValue(def);
 
@@ -94,7 +118,7 @@ class BraveCache<Client = any> {
     async getAsync<Value = any>(key: string, def?: Value | (() => Value)): Promise<Value> {
         this.provider.hasFunctionOrThrowError("get");
 
-        let value: Value = await this.provider.functions.get(key);
+        let value: Value = await this.provider.functions.get(this.prefix(key));
 
         if (value === undefined && def) return bc_getDefaultValue(def);
 
@@ -106,16 +130,29 @@ class BraveCache<Client = any> {
      * @param keys
      */
     getMany<Values extends Record<string, any>>(keys: string[]) {
+        let items = {} as Record<string, any>;
+
         if (this.provider.functions.getMany) {
-            return this.provider.functions.getMany(keys) as Values;
+            // Prefix keys
+            if (this.hasPrefix) keys = keys.map((key) => this.prefix(key));
+
+            items = this.provider.functions.getMany(keys) as Values;
+        } else {
+            for (const key of keys) {
+                items[this.prefix(key)] = this.get(key);
+            }
         }
 
-        const value = {} as Record<string, any>;
-        for (const key of keys) {
-            value[key] = this.get(key);
+        if (this.hasPrefix) {
+            // Remove prefix
+            items = bc_removePrefixFromObjectKeys(
+                items,
+                this.options.prefix as string,
+                this.options.prefixSeparator!
+            );
         }
 
-        return value;
+        return items;
     }
 
     /**
@@ -123,17 +160,28 @@ class BraveCache<Client = any> {
      * @param keys
      */
     async getManyAsync<Values extends Record<string, any>>(keys: string[]) {
+        let items = {} as Record<string, any>;
+
         if (this.provider.functions.getMany) {
-            return this.provider.functions.getMany(keys) as Values;
+            // Prefix keys
+            if (this.hasPrefix) keys = keys.map((key) => this.prefix(key));
+            items = (await this.provider.functions.getMany(keys)) as Values;
+        } else {
+            for (const key of keys) {
+                items[this.prefix(key)] = await this.getAsync(key);
+            }
         }
 
-        const value = {} as Record<string, any>;
-
-        for (const key of keys) {
-            value[key] = await this.getAsync(key);
+        if (this.hasPrefix) {
+            // Remove prefix
+            items = bc_removePrefixFromObjectKeys(
+                items,
+                this.options.prefix as string,
+                this.options.prefixSeparator!
+            );
         }
 
-        return value;
+        return items;
     }
 
     /**
@@ -177,7 +225,7 @@ class BraveCache<Client = any> {
      */
     set<Value = any>(key: string, value: Value, ttl?: number) {
         this.provider.hasFunctionOrThrowError("set");
-        this.provider.functions.set(key, value, ttl);
+        this.provider.functions.set(this.prefix(key), value, ttl);
 
         return this;
     }
@@ -190,7 +238,7 @@ class BraveCache<Client = any> {
      */
     async setAsync<Value = any>(key: string, value: Value, ttl?: number) {
         this.provider.hasFunctionOrThrowError("set");
-        await this.provider.functions.set(key, value, ttl);
+        await this.provider.functions.set(this.prefix(key), value, ttl);
 
         return this;
     }
@@ -241,7 +289,7 @@ class BraveCache<Client = any> {
      */
     del(key: string) {
         this.provider.hasFunctionOrThrowError("del");
-        this.provider.functions.del(key);
+        this.provider.functions.del(this.prefix(key));
 
         return this;
     }
@@ -252,7 +300,7 @@ class BraveCache<Client = any> {
      */
     async delAsync(key: string) {
         this.provider.hasFunctionOrThrowError("del");
-        await this.provider.functions.del(key);
+        await this.provider.functions.del(this.prefix(key));
 
         return this;
     }
@@ -279,7 +327,7 @@ class BraveCache<Client = any> {
      */
     has(key: string) {
         this.provider.hasFunctionOrThrowError("has");
-        return this.provider.functions.has(key) as boolean;
+        return this.provider.functions.has(this.prefix(key)) as boolean;
     }
 
     /**
@@ -293,16 +341,33 @@ class BraveCache<Client = any> {
     /**
      * Get keys of items in the cache
      */
-    keys() {
+    keys(withPrefix = false) {
         this.provider.hasFunctionOrThrowError("keys");
-        return this.provider.functions.keys() as string[];
+        const keys = this.provider.functions.keys() as string[];
+
+        if (this.hasPrefix && !withPrefix) {
+            return keys.map((key) =>
+                key.replace(this.options.prefix + this.options.prefixSeparator!, "")
+            );
+        }
+
+        return keys;
     }
 
     /**
      * Async: Get keys of items in the cache
      */
-    async keysAsync() {
-        return this.keys();
+    async keysAsync(withPrefix = false) {
+        this.provider.hasFunctionOrThrowError("keys");
+        const keys = await this.provider.functions.keys();
+
+        if (this.hasPrefix && !withPrefix) {
+            return keys.map((key) =>
+                key.replace(this.options.prefix + this.options.prefixSeparator!, "")
+            );
+        }
+
+        return keys;
     }
 
     /**

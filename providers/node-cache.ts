@@ -4,6 +4,13 @@
 import BraveCacheProvider from "../src/provider";
 import NodeCache from "node-cache";
 
+/**
+ * Node Cache Provider
+ * @example
+ * const cache = new BraveCache("node-cache");
+ * @param options
+ * @constructor
+ */
 export default function NodeCacheProvider(options: NodeCache.Options = {}) {
     // Create a new instance of the Node Cache
     const cache = new NodeCache(options);
