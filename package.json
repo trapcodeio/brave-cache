@@ -1,6 +1,6 @@
 {
   "name": "brave-cache",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A flexible semantic Api for handling multiple node cache drivers.",
   "main": "index.js",
   "types": "index.d.ts",
