@@ -40,12 +40,16 @@ console.log(cache.provider.client.get("direct")) // => direct
 ```
 
 ## Cache Instance Api
-These are the functions available on the cache instance.
+These are the functions available on the cache instance. Unlike other cache packages, all instance methods come in both `sync` and `async` versions.
 
 Example of a cache instance.
 ```js
-
+const cache = new BraveCache();
+// or specify a provider
+const cache = new BraveCache("object-cache")
 ```
+
+### get()
 
 
 ## Providers
