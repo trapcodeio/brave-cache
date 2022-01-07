@@ -5,10 +5,11 @@ Brave Cache is a simple caching library **manager** for Nodejs.
 NodeJs Ecosystem already has lots of caching libraries and this is not one of them, but they are not **merge-able** and consists of **different apis.**
 Brave Cache supports adding multiple cache providers/drivers while keeping same api.
 
-## Menu
+## Table of Contents
 
 -   [Why Brave Cache?](#why-brave-cache)
 -   [Installation](#installation)
+-   [Default Providers](#default-providers)
 -   [Usage](#usage)
 -   [Cache Instance Api](#cache-instance-api)
     -   [get](#get)
@@ -25,6 +26,16 @@ Brave Cache supports adding multiple cache providers/drivers while keeping same 
     -   [hasAsync](#hasasync)
     -   [del](#del)
     -   [delAsync](#delasync)
+    -   [remove](#remove)
+    -   [removeAsync](#removeasync)
+    -   [keys](#keys)
+    -   [keysAsync](#keysasync)
+    -   [flush](#flush)
+    -   [flushAsync](#flushasync)
+    -   [size](#size)
+    -   [sizeAsync](#sizeasync)
+-   [Create Custom Provider](#create-custom-provider)
+-   [Use Custom Provider](#use-custom-provider)
 
 ## Why Brave Cache?
 
@@ -42,6 +53,17 @@ npm install brave-cache
 # OR
 yarn add brave-cache
 ```
+
+## Default Providers
+
+Out of the box, BraveCache provides supports for the following cache libraries:
+
+-   Object Cache using [object-collection](https://npmjs.com/package/object-collection) (default)
+-   [LRU Cache](http://npmjs.com/package/lru-cache) (requires: `lru-cache`)
+-   [Node Cache](https://www.npmjs.com/package/node-cache) (requires: `node-cache`)
+
+The default Provider is `ObjectCacheProvider` which uses [`object-collection`](https://npmjs.com/package/object-collection) to store the cache data in an object.
+It has been registered by default.
 
 ## Usage
 
@@ -270,18 +292,7 @@ Get the number of items in the cache.
 
 Async version of `size()`
 
-## Providers
-
-Out of the box, BraveCache provides supports for the following cache libraries:
-
--   Object Cache using [object-collection](https://npmjs.com/package/object-collection) (default)
--   [LRU Cache](http://npmjs.com/package/lru-cache) (requires: `lru-cache`)
--   [Node Cache](https://www.npmjs.com/package/node-cache) (requires: `node-cache`)
-
-The default Provider is `ObjectCacheProvider` which uses [`object-collection`](https://npmjs.com/package/object-collection) to store the cache data in an object.
-It has been registered by default.
-
-## Creating a Custom Provider
+## Create Custom Provider
 
 Basically all nodejs `cache` modules have similar api, so creating a custom provider is easy.
 
@@ -297,7 +308,6 @@ function SimpleCache() {
     // Return provider instance
     return new BraveCacheProvider({
         name,
-
         functions: {
             get(key) {
                 return SimpleCacheStore[key];
@@ -332,7 +342,13 @@ From the example above, the `SimpleCache` provider is a simple implementation of
 Notice that you have to implement all the functions that are required by the `BraveCacheProvider` class.
 These functions will be used when accessing the cache.
 
-### Using A Custom Provider
+Functions to be implemented: `get`, `set`, `has`, `del`, `flush`, `keys`
+
+Optional functions: `getMany`
+
+Note: if any optional function is not implemented, BraveCache in house function will be used instead.
+
+### Use Custom Provider
 
 A custom Provider function can include arguments that are related to the provider.
 
@@ -342,7 +358,7 @@ const BraveCache = require("brave-cache");
 // Register Simple Cache Above
 BraveCache.registerProvider(SimpleCache());
 
-const cache = new BraveCache(); // or new BraveCache("simple-cache"); if simple-cache is not set as default provider.
+const cache = new BraveCache("simple-cache"); // `simple-cache` is the name of the provider
 
 cache.set("test", "value");
 

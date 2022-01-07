@@ -17,12 +17,7 @@ export default function ObjectCacheProvider(data?: Record<string, any>) {
                 return cache.get(key);
             },
 
-            set(key, value, ttl) {
-                // if ttl is not provided, use setTimeout to unset the value
-                if (ttl) {
-                    setTimeout(() => cache.unset(key), ttl * 1000);
-                }
-
+            set(key, value) {
                 return cache.set(key, value);
             },
 

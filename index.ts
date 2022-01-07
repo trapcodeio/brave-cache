@@ -224,6 +224,8 @@ class BraveCache<Client = any> {
                 await this.setAsync(value.key, value.value, value.ttl);
             }
         }
+
+        return this;
     }
 
     /**
@@ -243,7 +245,6 @@ class BraveCache<Client = any> {
      */
     async delAsync(key: string) {
         this.provider.hasFunctionOrThrowError("del");
-
         await this.provider.functions.del(key);
 
         return this;
@@ -271,15 +272,15 @@ class BraveCache<Client = any> {
      */
     has(key: string) {
         this.provider.hasFunctionOrThrowError("has");
-        return this.provider.functions.has(key);
+        return this.provider.functions.has(key) as boolean;
     }
 
     /**
      * Async Check if a key exists in the cache
      * @param key
      */
-    hasAsync(key: string) {
-        return this.has(key) as Promise<boolean>;
+    async hasAsync(key: string) {
+        return this.has(key);
     }
 
     /**
@@ -294,8 +295,7 @@ class BraveCache<Client = any> {
      * Async: Get keys of items in the cache
      */
     async keysAsync() {
-        this.provider.hasFunctionOrThrowError("keys");
-        return this.provider.functions.keys() as Promise<string[]>;
+        return this.keys();
     }
 
     /**

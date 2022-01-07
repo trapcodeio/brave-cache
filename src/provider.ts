@@ -1,7 +1,15 @@
 import { BraveCacheProviderConfig, BraveCacheProviderFunctions } from "./types";
 
 type RequiredFunctions = keyof BraveCacheProviderFunctions;
-const RequiredFunctions: Array<RequiredFunctions> = ["get", "set", "del", "has", "flush", "keys"];
+const RequiredFunctions: Array<RequiredFunctions> = [
+    // prettier-ignore
+    "get",
+    "set",
+    "del",
+    "has",
+    "flush",
+    "keys"
+];
 
 class BraveCacheProvider<Client = any> {
     name: string;
