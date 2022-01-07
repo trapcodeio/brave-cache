@@ -65,6 +65,13 @@ class BraveCache<Client = any> {
     }
 
     /**
+     * Get list of registered providers
+     */
+    static registeredProviders() {
+        return Object.keys(RegisteredProviders);
+    }
+
+    /**
      * Get a value from the cache
      * @param key The key to get
      * @param def

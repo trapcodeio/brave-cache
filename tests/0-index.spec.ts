@@ -4,13 +4,20 @@ import ObjectCacheProvider from "../providers/object-cache";
 import BraveCache from "../index";
 
 // Initialize the cache.
-test("Register provider", () => {
+test("Register provider", (assert) => {
     BraveCache.registerProvider(LRUCacheProvider());
     // register Cache as another name
     BraveCache.registerProvider(LRUCacheProvider(), "lru-cache-2");
 
     // Set Default Provider.
     BraveCache.setDefaultProvider("lru-cache");
+
+    // Check if registered.
+    assert.deepEqual(BraveCache.registeredProviders(), [
+        "object-cache", // default
+        "lru-cache",
+        "lru-cache-2"
+    ]);
 });
 
 test("Initialize new Cache", (assert) => {

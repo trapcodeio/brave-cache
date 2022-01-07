@@ -59,8 +59,8 @@ yarn add brave-cache
 Out of the box, BraveCache provides supports for the following cache libraries:
 
 -   Object Cache using [object-collection](https://npmjs.com/package/object-collection) (default)
--   [LRU Cache](http://npmjs.com/package/lru-cache) (requires: `lru-cache`)
--   [Node Cache](https://www.npmjs.com/package/node-cache) (requires: `node-cache`)
+-   [LRU Cache](http://npmjs.com/package/lru-cache) (requires package: `lru-cache`)
+-   [Node Cache](https://www.npmjs.com/package/node-cache) (requires package: `node-cache`)
 
 The default Provider is `ObjectCacheProvider` which uses [`object-collection`](https://npmjs.com/package/object-collection) to store the cache data in an object.
 It has been registered by default.
@@ -74,12 +74,15 @@ const LRUCacheProvider = require("brave-cache/providers/lru-cache");
 // Register a Provider
 BraveCache.registerProvider(
     LRUCacheProvider({
-        // LRU Cache Options
+        /* LRU Cache Options */
     })
 );
 
+// Set as default Provider
+BraveCache.setDefaultProvider("lru-cache");
+
 // Create Cache, it will use LRUCache
-const cache = new BraveCache();
+const cache = new BraveCache("lru-cache");
 cache.set("test", "test");
 
 console.log(cache.get("test"));
