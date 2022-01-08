@@ -54,10 +54,10 @@ const BraveCache = require("brave-cache");
 const cache = new BraveCache();
 cache.set("pet", "cat");
 
-cache.get("pet"); // "cat"
+console.log(cache.get("pet")); // "cat"
 
 // You can also access the provider
-cache.provider.client.set("direct", "direct"); // => LRUCache
+cache.provider.client.set("direct", "direct");
 
 console.log(cache.get("direct")); // => direct
 console.log(cache.provider.client.get("direct")); // => direct
