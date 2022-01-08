@@ -5,14 +5,24 @@ import ObjectCacheProvider from "./providers/object-cache";
 const RegisteredProviders: Record<string, BraveCacheProvider> = {};
 let DefaultProvider: BraveCacheProvider | undefined = undefined;
 
-type BraveCacheOptions = { prefix?: string | boolean; prefixSeparator?: string };
+type BraveCacheOptions = { provider?: string; prefix?: string | boolean; prefixSeparator?: string };
 
 class BraveCache<Client = any> {
     // Instance provider holder
     provider: BraveCacheProvider<Client>;
     options: BraveCacheOptions;
 
-    constructor(provider?: string, options?: BraveCacheOptions) {
+    constructor(provider?: string, options?: BraveCacheOptions);
+    constructor(options?: BraveCacheOptions);
+    constructor(provider?: string | BraveCacheOptions, options?: BraveCacheOptions) {
+        if (typeof provider === "object") {
+            options = provider;
+            provider = options.provider;
+        } else if (options) {
+            // set options provider name value
+            options.provider = provider;
+        }
+
         this.provider = BraveCache.getProvider(provider);
 
         // Merge options
@@ -93,6 +103,10 @@ class BraveCache<Client = any> {
 
     private get hasPrefix() {
         return typeof this.options.prefix === "string" && this.options.prefix.trim().length > 0;
+    }
+
+    private get prefixWithSeparator() {
+        return this.hasPrefix ? this.options.prefix! + this.options.prefixSeparator! : "";
     }
 
     /**
@@ -343,12 +357,14 @@ class BraveCache<Client = any> {
      */
     keys(withPrefix = false) {
         this.provider.hasFunctionOrThrowError("keys");
-        const keys = this.provider.functions.keys() as string[];
+        let keys = this.provider.functions.keys() as string[];
 
         if (this.hasPrefix && !withPrefix) {
-            return keys.map((key) =>
-                key.replace(this.options.prefix + this.options.prefixSeparator!, "")
-            );
+            // Remove keys that don't have the prefix
+            keys = keys.filter((key) => key.startsWith(this.prefixWithSeparator));
+
+            // Remove the prefix
+            return keys.map((key) => key.replace(this.prefixWithSeparator, ""));
         }
 
         return keys;
@@ -359,15 +375,31 @@ class BraveCache<Client = any> {
      */
     async keysAsync(withPrefix = false) {
         this.provider.hasFunctionOrThrowError("keys");
-        const keys = await this.provider.functions.keys();
+        let keys = await this.provider.functions.keys();
 
         if (this.hasPrefix && !withPrefix) {
-            return keys.map((key) =>
-                key.replace(this.options.prefix + this.options.prefixSeparator!, "")
-            );
+            // Remove keys that don't have the prefix
+            keys = keys.filter((key) => key.startsWith(this.prefixWithSeparator));
+
+            // Remove the prefix
+            return keys.map((key) => key.replace(this.prefixWithSeparator, ""));
         }
 
         return keys;
+    }
+
+    /**
+     * Get keys with prefix
+     */
+    keysWithPrefix() {
+        return this.keys(true);
+    }
+
+    /**
+     * Async: Get keys with prefix
+     */
+    async keysWithPrefixAsync() {
+        return this.keysAsync(true);
     }
 
     /**

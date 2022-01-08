@@ -270,7 +270,7 @@ export function TestCacheProvider(
 
         if (prefix) {
             // test keys() with prefix
-            test("keys(): has prefix", (assert) => {
+            test("keys(true): with prefix", (assert) => {
                 cache.set("key", "value");
                 cache.set("key2", "value2");
 
@@ -279,10 +279,13 @@ export function TestCacheProvider(
                 assert.equal(keys.length, 2);
                 assert.include(keys, `${prefix}:key`);
                 assert.include(keys, `${prefix}:key2`);
+
+                // test keysWithPrefix() alias
+                assert.deepEqual(cache.keysWithPrefix(), keys);
             });
 
             // test keysAsync with prefix
-            test("keysAsync(): has prefix", async (assert) => {
+            test("keysAsync(true): with prefix", async (assert) => {
                 cache.set("key", "value");
                 cache.set("key2", "value2");
 
@@ -291,20 +294,34 @@ export function TestCacheProvider(
                 assert.equal(keys.length, 2);
                 assert.include(keys, `${prefix}:key`);
                 assert.include(keys, `${prefix}:key2`);
+
+                // test keysWithPrefix() alias
+                assert.deepEqual(await cache.keysWithPrefixAsync(), keys);
             });
 
             test("Same [key & provider] with different prefix should give different result", (assert) => {
                 const cache = new BraveCache(provider.name, { prefix: "1" });
                 const cache2 = new BraveCache(provider.name, { prefix: "2" });
+                const cache3 = new BraveCache(provider.name);
 
                 assert.equal(cache.options.prefix, "1");
                 assert.equal(cache2.options.prefix, "2");
 
-                cache.set("key", "value");
-                cache2.set("key", "value2");
+                cache.set("key", "from cache 1");
+                cache2.set("key", "from cache 2");
 
-                assert.equal(cache.get("key"), "value");
-                assert.equal(cache2.get("key"), "value2");
+                assert.equal(cache.get("key"), "from cache 1");
+                assert.equal(cache2.get("key"), "from cache 2");
+
+                // add one more key to cache2
+                cache2.set("key2", "value2");
+
+                // each cache should have different size
+                assert.equal(cache.size(), 1);
+                assert.equal(cache2.size(), 2);
+
+                // cache3 should have same size as cache1 + cache2
+                assert.equal(cache3.size(), 3); // because cache3 has no prefix
             });
         } else {
             // test flush():

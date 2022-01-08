@@ -9,31 +9,22 @@ Brave Cache supports adding multiple cache providers/drivers while keeping same 
 
 -   [Why Brave Cache?](#why-brave-cache)
 -   [Installation](#installation)
--   [Default Providers](#default-providers)
 -   [Usage](#usage)
+-   [Providers](#providers)
+-   [Register Provider](#register-provider)
 -   [Cache Instance Api](#cache-instance-api)
-    -   [get](#get)
-    -   [getAsync](#getasync)
-    -   [getMany](#getmany)
-    -   [getManyAsync](#getmanyasync)
-    -   [set](#set)
-    -   [setAsync](#setasync)
-    -   [setMany](#setmany)
-    -   [setManyAsync](#setmanyasync)
-    -   [getOrSet](#getorset)
-    -   [getOrSetAsync](#getorsetasync)
-    -   [has](#has)
-    -   [hasAsync](#hasasync)
-    -   [del](#del)
-    -   [delAsync](#delasync)
-    -   [remove](#remove)
-    -   [removeAsync](#removeasync)
-    -   [keys](#keys)
-    -   [keysAsync](#keysasync)
-    -   [flush](#flush)
-    -   [flushAsync](#flushasync)
-    -   [size](#size)
-    -   [sizeAsync](#sizeasync)
+    -   [get](#get) or [getAsync](#getasync)
+    -   [getMany](#getmany) or [getManyAsync](#getmanyasync)
+    -   [set](#set) or [setAsync](#setasync)
+    -   [setMany](#setmany) or [setManyAsync](#setmanyasync)
+    -   [getOrSet](#getorset) or [getOrSetAsync](#getorsetasync)
+    -   [has](#has) or [hasAsync](#hasasync)
+    -   [del](#del) or [delAsync](#delasync)
+    -   [remove](#remove) or [removeAsync](#removeasync)
+    -   [keys](#keys) or [keysAsync](#keysasync)
+    -   [keysWithPrefix](#keyswithprefix) or [keysWithPrefixAsync](#keyswithprefixasync)
+    -   [flush](#flush) or [flushAsync](#flushasync)
+    -   [size](#size) or [sizeAsync](#sizeasync)
 -   [Create Custom Provider](#create-custom-provider)
 -   [Use Custom Provider](#use-custom-provider)
 
@@ -54,7 +45,25 @@ npm install brave-cache
 yarn add brave-cache
 ```
 
-## Default Providers
+## Usage
+
+```js
+const BraveCache = require("brave-cache");
+
+// Create Cache, it will use the default provider
+const cache = new BraveCache();
+cache.set("pet", "cat");
+
+cache.get("pet"); // "cat"
+
+// You can also access the provider
+cache.provider.client.set("direct", "direct"); // => LRUCache
+
+console.log(cache.get("direct")); // => direct
+console.log(cache.provider.client.get("direct")); // => direct
+```
+
+## Providers
 
 Out of the box, BraveCache provides supports for the following cache libraries:
 
@@ -65,34 +74,83 @@ Out of the box, BraveCache provides supports for the following cache libraries:
 The default Provider is `ObjectCacheProvider` which uses [`object-collection`](https://npmjs.com/package/object-collection) to store the cache data in an object.
 It has been registered by default.
 
-## Usage
+## Register Provider
+
+The `registerProvider` method can be used to register a custom provider.
+
+it takes two arguments:
+
+| Argument   | Type     | Description                                               |
+| ---------- | -------- | --------------------------------------------------------- |
+| `provider` | `object` | The provider object i.e. instance of `BraveCacheProvider` |
+| `as`       | `string` | Custom name of the provider (optional)                    |
 
 ```js
 const BraveCache = require("brave-cache");
 const LRUCacheProvider = require("brave-cache/providers/lru-cache");
 
-// Register a Provider
-BraveCache.registerProvider(
-    LRUCacheProvider({
-        /* LRU Cache Options */
-    })
-);
+// default name is `lru-cache`
+BraveCache.registerProvider(LRUCacheProvider());
+// custom name as `my-cache`
+BraveCache.registerProvider(LRUCacheProvider(), "my-cache");
+// custom name as `my-cache-2` and max size of 50
+BraveCache.registerProvider(LRUCacheProvider({ max: 50 }), "my-cache-2");
 
-// Set as default Provider
-BraveCache.setDefaultProvider("lru-cache");
-
-// Create Cache, it will use LRUCache
-const cache = new BraveCache();
-cache.set("test", "test");
-
-console.log(cache.get("test"));
-
-// You can also access the provider i.e lru-cache directly
-cache.provider.client.set("direct", "direct"); // => LRUCache
-
-console.log(cache.get("direct")); // => direct
-console.log(cache.provider.client.get("direct")); // => direct
+const cache = new BraveCache("lru-cache");
+const cache2 = new BraveCache("my-cache");
+const cache3 = new BraveCache("my-cache-2");
 ```
+
+Providers are registered and accessed by their names.
+
+## Prefix support.
+
+Brave Cache adds prefix support to the cache keys without needing the provider to do it.
+on `get` and `set` methods the prefix will be added.
+
+The example below is how brave cache works without prefix.
+
+```js
+// will use default provider (ObjectCacheProvider)
+const cache1 = new BraveCache();
+const cache2 = new BraveCache();
+
+// cache1 and cache2 will have same data
+cache1.set("test", "from cache1");
+// this will overwrite the value for `test` in cache1
+cache2.set("test", "from cache2");
+
+cache1.get("test"); // => from cache2
+cache2.get("test"); // => from cache2
+```
+
+`cache1` and `cache2` will have same data because they are both using the same provider and without prefix you are referring to the same key in one provider.
+
+The example below is how brave cache works with prefix.
+
+```js
+// will use default provider (ObjectCacheProvider)
+const cache1 = new BraveCache({ prefix: "cache1" });
+const cache2 = new BraveCache({ prefix: "cache2" });
+const cache3 = new BraveCache(); // no prefix
+
+cache1.set("test", "from cache1");
+
+cache2.set("test", "from cache2");
+cache2.set("test2", "another value from cache2");
+
+cache1.get("test"); // => from cache1
+cache1.get("test2"); // => undefined
+
+cache2.get("test"); // => from cache
+cache2.get("test2"); // => another value from cache2
+
+cache1.size(); // => 1
+cache2.size(); // => 2
+cache3.size(); // => 3
+```
+
+`cache1` and `cache2` will not have same date because they are using different prefix. Meanwhile `cache3` will have `cache1 + cache2` data because they all reference the same provider instance.
 
 ## Cache Instance Api
 
@@ -278,6 +336,25 @@ cache.keys(); // => ["pet", "username", "email"]
 ### keysAsync()
 
 Async version of `keys()`
+
+### keysWithPrefix()
+
+```js
+const cache = new BraveCache({ prefix: "a" });
+
+cache.setMany([
+    ["pet", "dog"],
+    ["username", "joe"],
+    ["email", "joe@example.com"]
+]);
+
+cache.keys(); // => ["pet", "username", "email"]
+cache.keysWithPrefix(); // => ["a:pet", "a:username", "a:email"]
+```
+
+### keysWithPrefixAsync()
+
+Async version of `keysWithPrefix()`
 
 ### flush()
 
