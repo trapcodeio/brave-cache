@@ -202,12 +202,13 @@ class BraveCache<Client = any> {
      * Find or create a value in the cache
      * @param key The key to set
      * @param set The value to set
+     * @param ttl The time to live in seconds
      */
-    getOrSet<Value = any>(key: string, set: Value | (() => Value)) {
+    getOrSet<Value = any>(key: string, set: Value | (() => Value), ttl?: number) {
         if (this.has(key)) return this.get<Value>(key);
 
         const value = bc_getDefaultValue(set);
-        this.set(key, value);
+        this.set(key, value, ttl);
 
         return value;
     }
