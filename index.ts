@@ -224,7 +224,7 @@ class BraveCache<Client = any> {
         set: Value | (() => Value),
         ttl?: number
     ): Promise<Value> {
-        if (this.has(key)) return this.get<Value>(key);
+        if (await this.hasAsync(key)) return this.getAsync<Value>(key);
 
         const value = await bc_getDefaultValue(set);
         await this.setAsync(key, value, ttl);
