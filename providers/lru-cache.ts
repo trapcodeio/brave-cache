@@ -11,10 +11,9 @@ import LRUCache from "lru-cache";
  * @param options
  * @constructor
  */
-export default function LRUCacheProvider(options: LRUCache.Options<string, any> = {}) {
+export default function LRUCacheProvider(options: LRUCache.Options<any, any> = {} as any) {
     const cache = new LRUCache<string, any>({
-        max: 0,
-        maxAge: 1000 * 60 * 60 * 24 * 7,
+        max: 1000,
         ...options
     });
 
@@ -28,11 +27,11 @@ export default function LRUCacheProvider(options: LRUCache.Options<string, any> 
 
             set(key, value, ttl) {
                 // Since LRUCache supports milliseconds instead of seconds, we need to convert.
-                return cache.set(key, value, ttl ? ttl * 1000 : undefined);
+                return cache.set(key, value, { ttl: ttl ? ttl * 1000 : undefined });
             },
 
             del(key) {
-                return cache.del(key);
+                return cache.delete(key);
             },
 
             has(key) {
@@ -40,11 +39,11 @@ export default function LRUCacheProvider(options: LRUCache.Options<string, any> 
             },
 
             flush() {
-                return cache.reset();
+                return cache.clear();
             },
 
             keys() {
-                return cache.keys();
+                return [...cache.keys()] as unknown as string[];
             }
         }
     });
