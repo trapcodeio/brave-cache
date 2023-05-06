@@ -70,7 +70,7 @@
     "skipLibCheck": true,
     "types": [
       "@types/node",
-      "./node_modules/@types/lru-cache"
+      "lru-cache"
     ]
     /* Disallow inconsistently-cased references to the same file. */
   },

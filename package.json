@@ -15,7 +15,6 @@
     "prepublishOnly": "npx tsc && npm run test"
   },
   "devDependencies": {
-    "@types/lru-cache": "^7.10.10",
     "@types/node": "^20.1.0",
     "@types/random-words": "^1.1.2",
     "japa": "^4.0.0",
