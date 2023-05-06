@@ -2,7 +2,7 @@
  * LRUCacheProvider
  */
 import BraveCacheProvider from "../src/provider";
-import LRUCache from "lru-cache";
+import { LRUCache } from "lru-cache";
 
 /**
  * LRUCacheProvider
@@ -11,7 +11,7 @@ import LRUCache from "lru-cache";
  * @param options
  * @constructor
  */
-export default function LRUCacheProvider(options: LRUCache.Options<any, any> = {} as any) {
+export default function LRUCacheProvider(options: LRUCache.Options<any, any, any> = {} as any) {
     const cache = new LRUCache<string, any>({
         max: 1000,
         ...options
