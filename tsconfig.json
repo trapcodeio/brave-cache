@@ -67,7 +67,11 @@
 
     /* Advanced Options */
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": [
+      "@types/node",
+      "@types/lru-cache"
+    ]
     /* Disallow inconsistently-cased references to the same file. */
   },
   "exclude": [
